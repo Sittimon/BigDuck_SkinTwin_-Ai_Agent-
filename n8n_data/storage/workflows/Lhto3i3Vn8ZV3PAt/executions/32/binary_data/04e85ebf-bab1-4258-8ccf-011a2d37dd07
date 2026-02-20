@@ -1,0 +1,18 @@
+[
+  {
+    "Item": "1",
+    "Name": "somchai_j",
+    "Tel": "081-123-4567",
+    "History": "15",
+    "Status": "VIP",
+    "Feedback": "5"
+  },
+  {
+    "Item": "2",
+    "Name": "suphawadee.m",
+    "Tel": "092-234-5678",
+    "History": "8",
+    "Status": "Regular",
+    "Feedback": "4"
+  }
+]

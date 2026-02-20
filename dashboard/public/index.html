@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin-Twin Intelligence | Command Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg: #030508; --card: #0a0d14; --accent: #00d4ff; --accent-glow: rgba(0, 212, 255, 0.2);
+            --text-main: #e1e4e8; --text-dim: #8b949e; --border: #1f242c; --success: #238636; --warning: #d29922;
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 0; overflow-x: hidden; }
+        
+        .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+        
+        /* Sidebar */
+        aside { background: var(--card); border-right: 1px solid var(--border); padding: 40px 25px; }
+        .brand { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 12px; margin-bottom: 50px; }
+        .brand-icon { width: 12px; height: 12px; background: var(--accent); border-radius: 3px; box-shadow: 0 0 15px var(--accent); }
+        .nav-item { color: var(--text-dim); font-size: 14px; margin-bottom: 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .nav-item.active { color: var(--accent); }
+
+        /* Main Content */
+        main { padding: 40px; max-width: 1400px; margin: 0 auto; width: -webkit-fill-available; }
+        .header-area { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+        h1 { margin: 0; font-size: 28px; font-weight: 800; }
+        .live-indicator { font-size: 12px; color: #3fb950; display: flex; align-items: center; gap: 8px; }
+        .dot { width: 8px; height: 8px; background: #3fb950; border-radius: 50%; animation: blink 1.5s infinite; }
+
+        /* Dashboard Grid */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; transition: 0.3s; }
+        .stat-card:hover { border-color: var(--accent); background: #0d1117; }
+        .label { font-size: 11px; text-transform: uppercase; color: var(--text-dim); letter-spacing: 1px; }
+        .value { font-size: 32px; font-weight: 700; margin-top: 10px; display: block; }
+        .trend { font-size: 11px; margin-top: 5px; }
+
+        .main-grid { display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 20px; margin-bottom: 20px; }
+        .secondary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 25px; position: relative; }
+        .panel h3 { font-size: 16px; margin: 0 0 20px 0; display: flex; justify-content: space-between; align-items: center; }
+
+        /* --- FIXED: จำกัดความสูงของกราฟ --- */
+        .chart-container { position: relative; height: 500px; width: 100%; }
+
+        /* Leaderboard Style */
+        .leader-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .p-name { font-size: 14px; font-weight: 600; }
+        .p-bar-bg { height: 6px; background: #161b22; width: 100px; border-radius: 3px; position: relative; }
+        .p-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--accent); border-radius: 3px; }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <aside>
+        <div class="brand"><div class="brand-icon"></div> SKIN-TWIN</div>
+        <div class="nav-item active">● Real-time Monitor</div>
+        <div class="nav-item">○ Historical Data</div>
+        <div class="nav-item">○ Ingredient Insights</div>
+    </aside>
+
+    <main>
+        <div class="header-area">
+            <div>
+                <h1>Command Center</h1>
+                <p style="color: var(--text-dim); font-size: 14px;">Conversational Lab Intelligence Dashboard</p>
+            </div>
+            <div class="live-indicator">
+                <div class="dot"></div> LIVE STREAMING FROM FIREBASE
+            </div>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <span class="label">Total Sessions</span>
+                <span class="value" id="total-count">0</span>
+                <span class="trend" style="color: var(--accent);">Active Conversations</span>
+            </div>
+            <div class="stat-card">
+                <span class="label">Conversion Rate</span>
+                <span class="value" id="ctr">0%</span>
+                <span class="trend" id="ctr-label" style="color: var(--success);">Performance Rate</span>
+            </div>
+            <div class="stat-card">
+                <span class="label">Main Skin Issue</span>
+                <span class="value" id="top-concern" style="font-size: 24px; padding-top: 10px;">-</span>
+                <span class="trend" style="color: var(--warning);">Market Dominance</span>
+            </div>
+            <div class="stat-card">
+                <span class="label">Drop-off Rate</span>
+                <span class="value" id="drop-off">0%</span>
+                <span class="trend" style="color: #f85149;">Loss Opportunity</span>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="panel">
+                <h3>Conversion Mix <small style="font-weight: 400; opacity: 0.5;">Engagement vs Sales</small></h3>
+                <div class="chart-container">
+                    <canvas id="mixChart"></canvas>
+                </div>
+            </div>
+            <div class="panel">
+                <h3>Skin Problem Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="skinChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="secondary-grid">
+            <div class="panel">
+                <h3>Product Recommendation Leaderboard</h3>
+                <div id="product-list"></div>
+            </div>
+            <div class="panel">
+                <h3>Real-time Activity Stream</h3>
+                <div id="activity-log" style="font-size: 12px; max-height: 400px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQ5R1E15o2EEvDrNWz54Clkiam_CBzmtU",
+        authDomain: "bigduck-skincare.firebaseapp.com",
+        projectId: "bigduck-skincare", 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let skinChart, mixChart;
+
+    const q = query(collection(db, "analytics"), orderBy("timestamp", "desc"));
+    onSnapshot(q, (snapshot) => {
+        let total = 0, clicks = 0;
+        let concerns = {}, products = {};
+        let logHtml = "";
+
+        snapshot.forEach((doc) => {
+            const d = doc.data();
+            total++;
+            if (d.clicked) clicks++;
+            
+            if (d.concern) {
+                concerns[d.concern] = (concerns[d.concern] || 0) + 1;
+            }
+            if (d.productRecommended) {
+                products[d.productRecommended] = (products[d.productRecommended] || 0) + 1;
+            }
+
+            logHtml += `
+                <div style="padding: 10px 0; border-bottom: 1px solid #1f242c; display: flex; justify-content: space-between;">
+                    <span style="color: #8b949e;">ID: ${d.lineUserId?.substring(0,6) || 'Guest'}...</span>
+                    <span style="color: ${d.clicked ? '#00d4ff' : '#8b949e'}">${d.clicked ? '✓ PURCHASE INTENT' : '• CHATTING'}</span>
+                </div>
+            `;
+        });
+
+        // Top Concern calculation
+        const sortedConcerns = Object.entries(concerns).sort((a, b) => b[1] - a[1]);
+        document.getElementById('top-concern').innerText = sortedConcerns.length > 0 ? sortedConcerns[0][0] : "Analyzing...";
+
+        // Update Numbers
+        document.getElementById('total-count').innerText = total;
+        const ctrValue = total > 0 ? ((clicks/total)*100) : 0;
+        document.getElementById('ctr').innerText = ctrValue.toFixed(1) + '%';
+        document.getElementById('drop-off').innerText = (100 - ctrValue).toFixed(1) + '%';
+        document.getElementById('activity-log').innerHTML = logHtml;
+
+        // Leaderboard
+        let productHtml = "";
+        Object.entries(products).sort((a,b) => b[1]-a[1]).slice(0,5).forEach(([name, count]) => {
+            const percentage = total > 0 ? (count/total)*100 : 0;
+            productHtml += `<div class="leader-item"><div class="p-name">${name}</div><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 12px; color: var(--accent);">${count} cases</span><div class="p-bar-bg"><div class="p-bar-fill" style="width: ${percentage}%"></div></div></div></div>`;
+        });
+        document.getElementById('product-list').innerHTML = productHtml;
+
+        // Update Charts
+        updateSkinChart(concerns);
+        updateMixChart(clicks, total - clicks);
+    });
+
+    function updateSkinChart(data) {
+        const ctx = document.getElementById('skinChart').getContext('2d');
+        if (skinChart) skinChart.destroy();
+        skinChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{ label: 'Cases', data: Object.values(data), backgroundColor: '#00d4ff', borderRadius: 5 }]
+            },
+            options: { 
+                responsive: true,
+                maintainAspectRatio: false, // ล็อกสัดส่วนกราฟ
+                plugins: { legend: { display: false } }, 
+                scales: { 
+                    y: { grid: { color: '#1f242c' }, ticks: { color: '#8b949e' } }, 
+                    x: { grid: { display: false }, ticks: { color: '#8b949e' } } 
+                } 
+            }
+        });
+    }
+
+    function updateMixChart(converted, pending) {
+        const ctx = document.getElementById('mixChart').getContext('2d');
+        if (mixChart) mixChart.destroy();
+        mixChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Converted', 'Pending'],
+                datasets: [{ data: [converted, pending], backgroundColor: ['#00d4ff', '#161b22'], borderWidth: 0 }]
+            },
+            options: { 
+                responsive: true,
+                maintainAspectRatio: false, // ล็อกสัดส่วนกราฟ
+                cutout: '80%', 
+                plugins: { 
+                    legend: { position: 'bottom', labels: { color: '#8b949e', padding: 20 } } 
+                } 
+            }
+        });
+    }
+</script>
+</body>
+</html>
